@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Node {
+    private int sizeOfNetwork;
     //based on Lampold Clock model
     public int localClockCounter = 0;
     public int ID;
@@ -13,15 +14,21 @@ public class Node {
     public Request lastSentRequest;
     public boolean isInCS = false;
 
+    public int csExitTime = 4; //if node is at CS at time 0 it will exist after 4 time units
+
     public Node(int ID, int sizeOfNetwork) {
         this.ID = ID;
         this.goAheadResponses = new int[sizeOfNetwork];
+        this.goAheadResponses[ID] =1;
+        this.sizeOfNetwork = sizeOfNetwork;
     }
 
     public Node(int ID, int localClockCounter, int sizeOfNetwork) {
         this.ID = ID;
         this.localClockCounter = localClockCounter;
         this.goAheadResponses = new int[sizeOfNetwork];
+        this.goAheadResponses[ID] =1;
+        this.sizeOfNetwork = sizeOfNetwork;
     }
 
     public Boolean sendRequestForCS(Node destinationNode) {
@@ -80,15 +87,53 @@ public class Node {
     }
 
     public void processResponse(Boolean response, int responserID){
-        if(response){
+        if(response!=null && response){
             this.goAheadResponses[responserID] =1;
         }
     }
 
-    public void enterCS(){
+    public void enterCS(int currentTime){
         this.isInCS = true;
         this.wantsToGetInCS = false;
+        this.csExitTime = currentTime + 4;
+        this.goAheadResponses = new int[sizeOfNetwork];
+        this.goAheadResponses[this.ID] =1;
+        System.out.println("Node " + ID + " ENTERED CS at time " + currentTime);
     }
+
+    public boolean checkIfIShoulfEnterCS(){
+        System.out.println("NODE "+this.ID+" is checking if can enter CS with clockCounetr "+this.localClockCounter+" and last recorded request time"+this.lastSentRequest);
+        System.out.println(Arrays.toString(this.goAheadResponses));
+        boolean isSucessful = true;
+        for(int goAhead:this.goAheadResponses){
+            if (goAhead==0){
+                isSucessful=false;
+            }
+        }
+        return isSucessful;
+    }
+
+    public void checkIfShouldExitCS(int currentTime, Network networkRef) {
+        if (isInCS && currentTime >= csExitTime) {
+            isInCS = false;
+            csExitTime = -1;
+            System.out.println("Node " + ID + " EXITED CS at time " + currentTime+" with local clock "+this.localClockCounter+" and last recorded request time"+this.lastSentRequest);
+
+            // Send approvals to waiting nodes
+            for (int waitingNodeId : listOfRequests) {
+                System.out.println("NODE "+this.ID+"granting the permission to enter CS (after eaving CS) to: "+waitingNodeId);
+                Node waitingNode = networkRef.getNode(waitingNodeId);
+                Boolean response = sendResponse(true);
+                waitingNode.processResponse(response, this.ID);
+            }
+            this.listOfRequests.clear();
+            this.goAheadResponses = new int[sizeOfNetwork];
+            this.goAheadResponses[this.ID] =1;
+        }
+    }
+
+
+
 
 
     @Override
