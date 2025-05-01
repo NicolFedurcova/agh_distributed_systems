@@ -112,16 +112,20 @@ public class MutualExclutor {
         if (inCritical.equalsIgnoreCase("y")) {
             System.out.print("Enter ID of node in critical section (int): ");
             int criticalNodeId = Integer.parseInt(scanner.nextLine());
-
-            System.out.print("Enter IDs (integers) of nodes that requested approval from the node in critical section (comma-separated): ");
-            String[] requestIdsStr = scanner.nextLine().split(",");
-            for(int i = 0; i < requestIdsStr.length; i++) {
-                approvalRequestsToCriticalNode.add(Integer.parseInt(requestIdsStr[i].trim()));
-            }
-
             Node nodeInCS = network.getNode(criticalNodeId);
             nodeInCS.isInCS = true;
-            nodeInCS.listOfRequests = approvalRequestsToCriticalNode;
+
+            System.out.println("Does this node have any stored nodes to whom did not award goAhead yet? (y/n): ");
+            String anyStored = scanner.nextLine();
+
+            if(anyStored.equalsIgnoreCase("y")) {
+                System.out.print("Enter IDs (integers) of nodes that requested approval from the node in critical section (comma-separated): ");
+                String[] requestIdsStr = scanner.nextLine().split(",");
+                for (int i = 0; i < requestIdsStr.length; i++) {
+                    approvalRequestsToCriticalNode.add(Integer.parseInt(requestIdsStr[i].trim()));
+                }
+                nodeInCS.listOfRequests = approvalRequestsToCriticalNode;
+            }
         }
 
         // Number of waiting nodes
@@ -205,14 +209,21 @@ public class MutualExclutor {
         ArrayList<Integer> approvalRequestsToCriticalNode = new ArrayList<>();
 
         if (inCritical.equalsIgnoreCase("y")) {
+            //id of node in citical section
             int criticalNodeId = Integer.parseInt(reader.readLine().trim());
-            String[] requestIdsStr = reader.readLine().trim().split(",");
-            for (int i = 0; i < requestIdsStr.length; i++) {
-                approvalRequestsToCriticalNode.add(Integer.parseInt(requestIdsStr[i].trim()));
-            }
             Node nodeInCS = network.getNode(criticalNodeId);
-            nodeInCS.listOfRequests = approvalRequestsToCriticalNode;
             nodeInCS.isInCS = true;
+
+            //has it stored nodes to whom not awarded goahead yet?
+            String hasStored = reader.readLine().trim();
+            if (hasStored.equalsIgnoreCase("y")) {
+                String[] requestIdsStr = reader.readLine().trim().split(",");
+                for (int i = 0; i < requestIdsStr.length; i++) {
+                    approvalRequestsToCriticalNode.add(Integer.parseInt(requestIdsStr[i].trim()));
+                }
+                nodeInCS.listOfRequests = approvalRequestsToCriticalNode;
+            }
+
         }
 
         // Number of nodes waiting
@@ -222,9 +233,11 @@ public class MutualExclutor {
             //node ID
             int waitingNodeId = Integer.parseInt(reader.readLine().trim());
             Node nodeWaitingToGetInCS = network.getNode(waitingNodeId);
+            nodeWaitingToGetInCS.wantsToGetInCS = true;
 
             //clockCounter when node requested for entering CS
             int requestClockCounter = Integer.parseInt(reader.readLine().trim());
+            nodeWaitingToGetInCS.lastSentRequest = new Request(requestClockCounter,waitingNodeId);
 
             //Does node have any nodeIDs stored in a lit to whom it did not give goAhead message? (y/n)
             String storedGoAhead = reader.readLine().trim();
@@ -245,10 +258,8 @@ public class MutualExclutor {
             for (int j = 0; j < approvalsStr.length; j++) {
                 approvals[j] = Integer.parseInt(approvalsStr[j].trim());
             }
-
             nodeWaitingToGetInCS.goAheadResponses = approvals;
-            nodeWaitingToGetInCS.wantsToGetInCS = true;
-            nodeWaitingToGetInCS.lastSentRequest = new Request(requestClockCounter,waitingNodeId);
+
             requestersStatuses.put(waitingNodeId, false);
         }
 
