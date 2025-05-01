@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Node {
-    private int sizeOfNetwork;
+    private final int sizeOfNetwork;
     //based on Lampold Clock model
     public int localClockCounter = 0;
     public int ID;
@@ -31,11 +31,10 @@ public class Node {
         this.sizeOfNetwork = sizeOfNetwork;
     }
 
-    public Boolean sendRequestForCS(Node destinationNode) {
+    public Response sendRequestForCS(Node destinationNode, Request request) {
         //incrementing local lock before sending the request
         this.localClockCounter += 1;
 
-        Request request = new Request(this.localClockCounter, this.ID);
         this.wantsToGetInCS = true;
         this.lastSentRequest = request;
 
@@ -43,7 +42,7 @@ public class Node {
         return destinationNode.receiveRequest(request);
     }
 
-    public Boolean receiveRequest(Request request) {
+    public Response receiveRequest(Request request) {
         //if localClockCounter of sender is > then localClockCounter of recipient
         //recipient clock will be updated to assure consistency
         this.localClockCounter = Math.max(this.localClockCounter, request.recordedClockCounter);
@@ -78,17 +77,26 @@ public class Node {
         }
     }
 
-    public Boolean sendResponse(Boolean reponse) {
-        //incrementing local clock because sending response
+    public Response sendResponse(Boolean reponse) {
+        //incrementing local clock because sending response if not null
         if (reponse != null) {
             this.localClockCounter += 1;
         }
-        return reponse;
+        Response res = new Response(this.localClockCounter, this.ID, reponse);
+        return res;
     }
 
-    public void processResponse(Boolean response, int responserID){
-        if(response!=null && response){
-            this.goAheadResponses[responserID] =1;
+    public void processResponse(Response response){
+        //if localClockCounter of sender is > then localClockCounter of recipient
+        //recipient clock will be updated to assure consistency
+        this.localClockCounter = Math.max(this.localClockCounter, response.recordedClockCounter);
+
+        //incrementing local lock after synchronization
+        // because message was received
+        this.localClockCounter += 1;
+
+        if(response.answer!=null && response.answer){
+            this.goAheadResponses[response.responserID] =1;
         }
     }
 
@@ -98,12 +106,10 @@ public class Node {
         this.csExitTime = currentTime + 4;
         this.goAheadResponses = new int[sizeOfNetwork];
         this.goAheadResponses[this.ID] =1;
-        System.out.println("Node " + ID + " ENTERED CS at time " + currentTime);
+        System.out.println("Node " + ID + " ENTERED CS with request " + lastSentRequest+" at simulated time point "+currentTime+" with local clock "+this.localClockCounter);
     }
 
     public boolean checkIfIShoulfEnterCS(){
-        System.out.println("NODE "+this.ID+" is checking if can enter CS with clockCounetr "+this.localClockCounter+" and last recorded request time"+this.lastSentRequest);
-        System.out.println(Arrays.toString(this.goAheadResponses));
         boolean isSucessful = true;
         for(int goAhead:this.goAheadResponses){
             if (goAhead==0){
@@ -121,10 +127,10 @@ public class Node {
 
             // Send approvals to waiting nodes
             for (int waitingNodeId : listOfRequests) {
-                System.out.println("NODE "+this.ID+"granting the permission to enter CS (after eaving CS) to: "+waitingNodeId);
+                System.out.println("NODE "+this.ID+" granting the permission to enter CS (after eaving CS) to: "+waitingNodeId);
                 Node waitingNode = networkRef.getNode(waitingNodeId);
-                Boolean response = sendResponse(true);
-                waitingNode.processResponse(response, this.ID);
+                Response response = sendResponse(true);
+                waitingNode.processResponse(response);
             }
             this.listOfRequests.clear();
             this.goAheadResponses = new int[sizeOfNetwork];

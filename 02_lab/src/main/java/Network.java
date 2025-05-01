@@ -30,7 +30,7 @@ public class Network {
     }
 
     public void soutStatusOfNetwork(){
-        System.out.println("STATE OF THE NETWORK");
+
         System.out.println("GO AHEAD RESPONSES:");
         for (int key : this.nodes.keySet()) {
             Node current = nodes.get(key);

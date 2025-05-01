@@ -26,15 +26,19 @@ public class MutualExclutor {
         System.out.println("------------------------SIMULATED TIME: "+ simulatedTime);
 
         //every time the simulatedTime changes we check if any node should exit critical section
+        for(Node node:network.nodes.values()){
+            node.checkIfShouldExitCS(simulatedTime, network);
+        }
         //or if any node is suchesfull in entering critical section
         for (Node node : network.nodes.values()) {
-            node.checkIfShouldExitCS(simulatedTime, network);
             boolean sucess = node.checkIfIShoulfEnterCS();
             if(sucess){
-                System.out.println("A NODE GOT ALL APPROVALS!!!!!!!!!!!!!!!!");
+                System.out.println("NODE " + node.ID +" GOT ALL APPROVALS!");
+                System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ STATE OF THE NETWORK AFTER MOMENT OF APPROVAL: ");
+                network.soutStatusOfNetwork();
                 node.enterCS(simulatedTime);
                 requestersStatuses.replace(node.ID, true);
-                network.soutStatusOfNetwork();
+
             }
         }
         return simulatedTime;
@@ -47,17 +51,18 @@ public class MutualExclutor {
             Node requester = network.getNode(request.requesterID);
             requestersStatuses.put(requester.ID,false);
             //requesting all nodes in network for approval to go in critical section
-            System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXREQUEST PROCESSING");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING REQUEST"+request);
             for(int destinationNodeID : network.nodes.keySet()){
                 if(destinationNodeID!=requester.ID){
-                    System.out.println("requester ID,time "+requester.ID+","+requester.lastSentRequest+ " asking node "+destinationNodeID+","+network.getNode(destinationNodeID).lastSentRequest+" for permission");
+                    Node destinationNode = network.getNode(destinationNodeID);
+                    System.out.println("requester (ID, local time) "+requester.ID+","+(requester.localClockCounter+1)+ " asking node "+destinationNodeID+","+destinationNode.localClockCounter+" for permission");
                     //change time and check if some nodes can enter / exit critical section
                     simulatedTime = changeTimeAndCheckEnteringAndExitingCS(simulatedTime, network, requestersStatuses);
                     //sends request
-                    Boolean response = requester.sendRequestForCS(network.getNode(destinationNodeID));
-                    System.out.println("to requester ID,time "+requester.ID+","+requester.lastSentRequest+ " permission by node "+destinationNodeID+","+network.getNode(destinationNodeID).lastSentRequest+" was/not awarded:"+response);
+                    Response response = requester.sendRequestForCS(destinationNode, request);
+                    System.out.println("to requester (ID, local time) "+requester.ID+","+requester.localClockCounter+ " permission by node "+destinationNodeID+","+destinationNode.localClockCounter+" was awarded:"+response.answer);
                     //process response
-                    requester.processResponse(response, destinationNodeID);
+                    requester.processResponse(response);
                 }
             }
         }
@@ -133,7 +138,7 @@ public class MutualExclutor {
         int w = Integer.parseInt(scanner.nextLine());
 
         for (int i = 0; i < w; i++) {
-            System.out.print("Enter ID of waiting node: (int)");
+            System.out.print("Enter ID of waiting node (int): ");
             int waitingNodeId = Integer.parseInt(scanner.nextLine());
             Node nodeWaitingToGetInCS = network.getNode(waitingNodeId);
             nodeWaitingToGetInCS.wantsToGetInCS = true;
@@ -142,7 +147,7 @@ public class MutualExclutor {
             int requestClockCounter = Integer.parseInt(scanner.nextLine());
             nodeWaitingToGetInCS.lastSentRequest = new Request(requestClockCounter, waitingNodeId);
 
-            System.out.print("Does node have any nodeIDs stored in a lit to whom it did not give goAhead message? (y/n): ");
+            System.out.print("Does node have any nodeIDs stored in a list to whom it did not give goAhead message? (y/n): ");
             String storedGoAhead = scanner.nextLine();
 
             if (storedGoAhead.equalsIgnoreCase("y")) {
@@ -167,7 +172,7 @@ public class MutualExclutor {
         }
 
         // Requests to be made
-        System.out.println("Enter requests to be made (format: timestamp,nodeID). Type 'done' to finish: ");
+        System.out.println("Enter requests to be made one per line (format: timestamp,nodeID). Type 'done' to finish: ");
 
         while (true) {
             String line = scanner.nextLine().trim();
@@ -287,7 +292,7 @@ public class MutualExclutor {
 
         if(mode.trim().equals("step")){
             // Number of nodes
-            System.out.print("Enter number of nodes: (int)");
+            System.out.print("Enter number of nodes (int): ");
             int n = Integer.parseInt(scanner.nextLine());
             network = new Network(n);
 
@@ -301,7 +306,7 @@ public class MutualExclutor {
                 System.out.println("<" + req.recordedClockCounter + ", " + req.requesterID+">");
             }
         } else if (mode.trim().equals("file")) {
-            System.out.println("Enter file path:");
+            System.out.println("Enter file path: "); //02_lab/src/main/resources/input.txt
             String path = scanner.nextLine();
 
             try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
