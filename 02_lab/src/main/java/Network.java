@@ -3,12 +3,19 @@ import java.util.HashMap;
 
 public class Network {
 
-    private final HashMap<Integer, Node> nodes= new HashMap<>();
+    //whole network saved as hashmap: key is ID of node and value is node object of corresponding ID
+    public final HashMap<Integer, Node> nodes= new HashMap<>();
+
+    //size of whole network (for initialization purposes)
     public int numberOfNodes;
+
+    public Network() {
+    }
 
     public Network(int numberOfNodes) {
         this.numberOfNodes = numberOfNodes;
     }
+
 
     public void addNode(Node node){
         this.nodes.put(node.ID, node);

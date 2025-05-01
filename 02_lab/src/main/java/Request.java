@@ -1,16 +1,16 @@
 public class Request {
-    public int timeStampCounter;
+    public int recordedClockCounter;
     public int requesterID;
 
-    public Request(int timeStampCounter, int requesterID) {
-        this.timeStampCounter = timeStampCounter;
+    public Request(int recordedClockCounter, int requesterID) {
+        this.recordedClockCounter = recordedClockCounter;
         this.requesterID = requesterID;
     }
 
     @Override
     public String toString() {
         return "<" +
-                timeStampCounter +", "+
+                recordedClockCounter +", "+
                 requesterID +
                 ">";
     }
