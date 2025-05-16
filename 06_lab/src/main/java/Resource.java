@@ -1,8 +1,7 @@
 public class Resource {
     private int ID;
     private int homeNodeID;
-    private int[] requestingProcessIDAndHomeNodeID;
-    private int[] givenToProcessIDAndHomeNodeID;
+    private String heldBy = null; // Format: "procID@nodeID"
 
     public Resource(int ID, int homeNodeID) {
         this.ID = ID;
@@ -13,24 +12,15 @@ public class Resource {
         return ID;
     }
 
-    public int[] getRequestingProcessIDAndHomeNodeID() {
-        return requestingProcessIDAndHomeNodeID;
+
+    public void setHeldBy(int procID, int nodeID) {
+        this.heldBy = procID + "@" + nodeID;
     }
 
-    public void setRequestingProcessIDAndHomeNodeID(int [] requestingProcessIDAndHomeNodeID) {
-        this.requestingProcessIDAndHomeNodeID = requestingProcessIDAndHomeNodeID;
-    }
-
-    public int[] getGivenToProcessIDAndHomeNodeID() {
-        return givenToProcessIDAndHomeNodeID;
-    }
-
-    public void setGivenToProcessIDAndHomeNodeID(int[] givenToProcessIDAndHomeNodeID) {
-        this.givenToProcessIDAndHomeNodeID = givenToProcessIDAndHomeNodeID;
-    }
+    public String getHeldBy() { return heldBy; }
 
     @Override
     public String toString() {
-        return requestingProcessIDAndHomeNodeID[0]+" -> ["+ID+"] -> "+givenToProcessIDAndHomeNodeID[0];
+        return "Resource" + ID + " in home node (@) " + homeNodeID + " held by: " + heldBy+"\n";
     }
 }

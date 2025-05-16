@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Node {
@@ -41,9 +40,9 @@ public class Node {
 
     @Override
     public String toString() {
-        return "{ NODE" + ID +": \n"+
-                "processes:\n" + processes +
-                "\nresources:\n" + resources +
+        return "{ NODE " + ID +": \n"+
+                "processes:\n" + processes.values() +
+                "\nresources:\n" + resources.values() +
                 "}";
     }
 }

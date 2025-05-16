@@ -1,8 +1,11 @@
+import java.util.HashSet;
+import java.util.Set;
+
 public class Process {
     private int ID;
     private int homeNodeID;
-    private int[] requestingResourceIDAndHomeNodeID;
-    private int [] givenResourceIDAndHomeNodeID;
+    private Set<String> requestedResources = new HashSet<>();
+    private Set<String> heldResources = new HashSet<>();
 
     public Process(int ID, int homeNodeID) {
         this.ID = ID;
@@ -14,24 +17,20 @@ public class Process {
         return ID;
     }
 
-    public int[] getRequestingResourceIDAndHomeNodeID() {
-        return requestingResourceIDAndHomeNodeID;
+    public int getHomeNodeID() { return homeNodeID; }
+
+    public void requestResource(int resID, int nodeID) {
+        requestedResources.add(resID + "@" + nodeID);
     }
 
-    public void setRequestingResourceIDAndHomeNodeID(int[] requestingResourceIDAndHomeNodeID) {
-        this.requestingResourceIDAndHomeNodeID = requestingResourceIDAndHomeNodeID;
+    public void holdResource(int resID, int nodeID) {
+        heldResources.add(resID + "@" + nodeID);
     }
 
-    public int[] getGivenResourceIDAndHomeNodeID() {
-        return givenResourceIDAndHomeNodeID;
-    }
-
-    public void setGivenResourceIDAndHomeNodeID(int[] givenResourceIDAndHomeNodeID) {
-        this.givenResourceIDAndHomeNodeID = givenResourceIDAndHomeNodeID;
-    }
+    public Set<String> getRequestedResources() { return requestedResources; }
 
     @Override
     public String toString() {
-        return givenResourceIDAndHomeNodeID[0]+" -> ("+ID+") -> "+requestingResourceIDAndHomeNodeID[0];
+        return "Process " + ID + " in node (@)" + homeNodeID + " holds=" + heldResources + ", requests=" + requestedResources+"\n";
     }
 }

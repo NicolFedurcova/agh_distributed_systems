@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 public class HRDeadlockDetector {
     private int networkSize;
+    private int noOfProcesses;
     private final HashMap<Integer, Node> network = new HashMap<>();
 
     public void printStateOfTheNetwork(){
@@ -22,19 +23,22 @@ public class HRDeadlockDetector {
             Node node = new Node(i);
             //loading amount of processes
             int noProcesses = Integer.parseInt(reader.nextLine());
-            for (int p = lastProcessID; p < noProcesses; p++) {
+            this.noOfProcesses+=noProcesses;
+            //create new process with increasing ID based on no of processes in node
+            for (int p = lastProcessID; p < noProcesses+lastProcessID; p++) {
                 Process process = new Process(p,i);
                 node.addToProcesses(process);
-                lastProcessID = p;
             }
+            lastProcessID = noProcesses+lastProcessID;
             //loading amount of resources
             int noResources = Integer.parseInt(reader.nextLine());
-            for (int r = lastResourceID; r < noResources; r++) {
+            //create new resource with increasing ID based on no of resources in node
+            for (int r = lastResourceID; r < noResources+lastResourceID; r++) {
                 Resource resource = new Resource(r,i);
                 node.addToResources(resource);
-                lastResourceID = r;
             }
-
+            lastResourceID = noResources+lastResourceID;
+            network.put(node.getID(),node);
         }
     }
 
@@ -48,12 +52,12 @@ public class HRDeadlockDetector {
             int processNodeID = Integer.parseInt(requestsStr[1].trim());
             int resourceID = Integer.parseInt(requestsStr[2].trim());
             int resourceNodeID = Integer.parseInt(requestsStr[3].trim());
-            //process has set that it is requesting resourceID
+
             Process process = this.network.get(processNodeID).getProcessByID(processID);
-            process.setRequestingResourceIDAndHomeNodeID(new int[] {resourceID,resourceNodeID});
-            //resource has set that it was requested by processID
-            Resource resource = this.network.get(resourceNodeID).getResourceByID(resourceID);
-            resource.setRequestingProcessIDAndHomeNodeID(new int[] {processID,processNodeID});
+
+            //process requests a resource
+            process.requestResource(resourceID, resourceNodeID);
+
         }
     }
 
@@ -68,13 +72,13 @@ public class HRDeadlockDetector {
             int processID = Integer.parseInt(grantingsStr[2].trim());
             int processNodeID = Integer.parseInt(grantingsStr[3].trim());
 
-            //resource has set that it was given to processID
             Resource resource = this.network.get(resourceNodeID).getResourceByID(resourceID);
-            resource.setGivenToProcessIDAndHomeNodeID(new int[] {processID, processNodeID});
+            Process process = this.network.get(processNodeID).getProcessByID(processID);
 
             //process has set that it is given resourceID
-            Process process = this.network.get(processNodeID).getProcessByID(processID);
-            process.setGivenResourceIDAndHomeNodeID(new int[]{resourceID, resourceNodeID});
+            process.holdResource(resourceID, resourceNodeID);
+            //resource has set that it was given to processID
+            resource.setHeldBy(processID, processNodeID);
 
         }
     }
@@ -88,16 +92,16 @@ public class HRDeadlockDetector {
             loadNetwork(reader);
             loadRequests(reader);
             loadGrantings(reader);
+            printStateOfTheNetwork();
         } catch (FileNotFoundException | NumberFormatException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) { //06_lab/src/main/resources/input1.txt
         HRDeadlockDetector deadlockDetector = new HRDeadlockDetector();
         deadlockDetector.loadInput();
-        deadlockDetector.printStateOfTheNetwork();
-        Controller controller = new Controller(deadlockDetector.networkSize);
+        Controller controller = new Controller(deadlockDetector.noOfProcesses);
         controller.collectInformation(deadlockDetector.network);
 
     }
