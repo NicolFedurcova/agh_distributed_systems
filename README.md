@@ -48,7 +48,7 @@ Department of Computer Science, University of Calcutta
 ## Course
 ***Distributed Systems***, Akademia Górniczo-Hutnicza im. Stanisława Staszica w Krakowie
 
-[Distributed Systems – Official Syllabus →](https://sylabusy.agh.edu.pl/en/2/2/20/1/9/55/137#nav-tab-22)
+[Distributed Systems – Official Syllabus →](https://sylabusy.agh.edu.pl/en/document/e8410193-7cbf-4e49-82b9-5474902f65f0.html)
 
 
 ---
